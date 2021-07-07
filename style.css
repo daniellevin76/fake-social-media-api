@@ -39,7 +39,8 @@ body {
   }
   
   .comment {
-
+   
+   
     list-style: none;
     background-color: #eee;
     margin: 0 30px 20px 0;
@@ -49,4 +50,8 @@ body {
   
   .comment div:nth-child(2) {
     font-weight: 100;
+  }
+
+  .comment ul {
+    display: none;
   }

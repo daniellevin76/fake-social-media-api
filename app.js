@@ -1,100 +1,112 @@
-// const commentButton = document.querySelector('.comment-button');
-let dataArray;
-
-let apiUrl = "https://jsonplaceholder.typicode.com/posts";
+let postUrl = "https://jsonplaceholder.typicode.com/posts";
 let commentUrl = "https://jsonplaceholder.typicode.com/comments";
-let userUrl = "https://jsonplaceholder.typicode.com/users"
+let userUrl = "https://jsonplaceholder.typicode.com/users";
+
+let dataArray = [];
 
 document.addEventListener("DOMContentLoaded", (event) => {
   event.preventDefault();
-  fetchApi(apiUrl);
-});
-
-function fetchApi(apiUrl) {
-  fetch(apiUrl)
-    .then((response) => response.json())
-    .then((jsonArr) => {
-      dataArray = jsonArr;
-    //  console.log(jsonArr);
-
-      const markup = jsonArr.map((element) => {
-        return `
-      <div class="post">
-            <h3 class="post-title">${element.title}</h3>
-            <div class="post-body">${element.body}</div>
-            <button class="comment-button" data-postid="${element.id}">Read comments</button>
-            <button class="author-button" data-userid="${element.userId}">Author info</button>
-            <ul class="comments"></ul>
-        </div>
-        `;
-      });
-
-      document.querySelector(".posts").innerHTML = markup;
+  loadData().then((data) => {
+    data.forEach((value) => {
+      dataArray.push(value);
     });
-}
+    // dataArray = [posts, commensts, users] from api
+    uploadPosts(dataArray[0]);
 
-document.body.addEventListener("click", (event) => {
-  event.preventDefault();
-  if (event.target.className === "comment-button"){
+    document.body.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (event.target.className === "comment-button") {
+        const buttonId = event.target.getAttribute("data-postid");
+        const filteredComments = dataArray[1].filter(
+          (comment) => comment.postId == buttonId
+        );
+  
+        const markup = uploadComments(filteredComments, buttonId);
 
-  loadComment(commentUrl, dataArray)
-
-  }
-});
-
-function loadComment(url, arr) {
-  fetch(url)
-    .then((response) => response.json())
-    .then((commentArr) => {
-     // let filteredArray = arr.filter(value => jsonArr.includes(value));
-     //let result = arr.filter((o1) => !jsonArr.some((o2) => o1.id === o2.id));
-
-   for (let index = 0; index < commentArr.length; index++) {
-     let element = commentArr[index];
-     // if (element)console.log(element)
-    
-      console.log(arr)
-
-        arr.forEach(elem => {
-      
-          if (elem.id === element.postId) {
-           console.log(elem.postId + " and " + element.postId)
-           
-          
-           
-         const commentMarkup = commentArr.map((elem) => {
-           return `
-           <ul class="comments">
-           <li class="comment">
-             <div>${commentArr.email}</div>
-             <div>${commentArr.body}</div>
-           </li>
-         </ul>
+       var commentUl = document.querySelector(
+          "[data-postid='ul-" + buttonId + "']"
+        )
         
-           `;
-         });
-         //console.log(commentMarkup);
-         
-         document.querySelector(".comments").innerHTML=  commentMarkup;
-          }
-        })
-        
-      
+        commentUl.innerHTML = markup;
+   
 
      
-   }
+
+      } else if (event.target.className === "author-button") {
+        const userButtonId = event.target.getAttribute("data-userid");
+        const filteredUser = dataArray[2].filter(
+          (user) => user.id == userButtonId
+        );
+
+        const markup = uploadUser(filteredUser);
+        document.querySelector(".user-container").innerHTML = markup;
+      }
     });
+  });
+});
+
+const loadData = async () => {
+  try {
+    const results = await Promise.all([
+      fetch(postUrl),
+      fetch(commentUrl),
+      fetch(userUrl),
+    ]);
+    results.forEach((result) => {
+      if (!result.ok) {
+        console.log(error);
+      }
+    });
+
+    const dataPromises = results.map((result) => result.json());
+    finalData = await Promise.all(dataPromises);
+    return finalData;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+function uploadComments(filteredComments) {
+  const markup = filteredComments.map((element) => {
+    return `
+          <li class="comment">
+          <div>${element.email}</div>
+          <div>${element.body}</div>
+        </li>
+      
+          `;
+  });
+  return markup;
 }
 
+function uploadUser(user) {
+  console.log(user[0].company.name);
 
-/*
-  
-  
-   <ul class="comments">
-              <li class="comment">
-                <div>Eliseo@gardner.biz</div>
-                <div>laudantium enim quasi est</div>
-              </li>
-            </ul>
+  return `         
+<div class="user">
+<h2>Author</h2>
+<div>${user[0].name}</div>
+<div>${user[0].email}</div>
+<div>Phone:${user[0].phone}</div>
+<br>
+<div>Company: ${user[0].company.name}</div>
+</div>
+      `;
+}
 
-*/
+function uploadPosts(posts) {
+  const markup = posts.map((element) => {
+    return `
+      <div class="post" id = "${element.id}">
+            <h3 class="post-title">${element.title}</h3>
+            <div class="post-body">${element.body}</div>
+            <button class="comment-button" data-postid="${element.id}" id = "${element.id}">Read comments</button>
+            <button class="author-button" data-userid="${element.userId}">Author info</button>
+            <ul data-postid="ul-${element.id}"></ul>
+           
+        </div>
+        `;
+  });
+
+  document.querySelector(".posts").innerHTML = markup;
+}
