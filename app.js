@@ -27,10 +27,15 @@ document.addEventListener("DOMContentLoaded", (event) => {
           "[data-postid='ul-" + buttonId + "']"
         )
         
-        commentUl.innerHTML = markup;
+        
    
 
-     
+     if (commentUl.innerHTML === "") {
+      commentUl.innerHTML = markup;
+       
+     } else{
+      commentUl.innerHTML = "";
+     }
 
       } else if (event.target.className === "author-button") {
         const userButtonId = event.target.getAttribute("data-userid");
